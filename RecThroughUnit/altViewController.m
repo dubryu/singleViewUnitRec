@@ -4,7 +4,7 @@
 //
 //  Created by KatayamaRyusuke on 2015/02/18.
 //  Copyright (c) 2015年 片山隆介. All rights reserved.
-//  ARCをオフにして、releaseを明示的にすること　
+//
 
 #import "altViewController.h"
 #import "audioSetup.h"

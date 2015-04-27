@@ -1,53 +1,4 @@
-/*
 
-    File: CaptureSessionController.mm
-Abstract: Class that sets up a AVCaptureSession that outputs to a
- AVCaptureAudioDataOutput. The output audio samples are passed through
- an effect audio unit and are then written to a file.
- Version: 1.0
-
-Disclaimer: IMPORTANT:  This Apple software is supplied to you by Apple
-Inc. ("Apple") in consideration of your agreement to the following
-terms, and your use, installation, modification or redistribution of
-this Apple software constitutes acceptance of these terms.  If you do
-not agree with these terms, please do not use, install, modify or
-redistribute this Apple software.
-
-In consideration of your agreement to abide by the following terms, and
-subject to these terms, Apple grants you a personal, non-exclusive
-license, under Apple's copyrights in this original Apple software (the
-"Apple Software"), to use, reproduce, modify and redistribute the Apple
-Software, with or without modifications, in source and/or binary forms;
-provided that if you redistribute the Apple Software in its entirety and
-without modifications, you must retain this notice and the following
-text and disclaimers in all such redistributions of the Apple Software.
-Neither the name, trademarks, service marks or logos of Apple Inc. may
-be used to endorse or promote products derived from the Apple Software
-without specific prior written permission from Apple.  Except as
-expressly stated in this notice, no other rights or licenses, express or
-implied, are granted by Apple herein, including but not limited to any
-patent rights that may be infringed by your derivative works or by other
-works in which the Apple Software may be incorporated.
-
-The Apple Software is provided by Apple on an "AS IS" basis.  APPLE
-MAKES NO WARRANTIES, EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION
-THE IMPLIED WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY AND FITNESS
-FOR A PARTICULAR PURPOSE, REGARDING THE APPLE SOFTWARE OR ITS USE AND
-OPERATION ALONE OR IN COMBINATION WITH YOUR PRODUCTS.
-
-IN NO EVENT SHALL APPLE BE LIABLE FOR ANY SPECIAL, INDIRECT, INCIDENTAL
-OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-INTERRUPTION) ARISING IN ANY WAY OUT OF THE USE, REPRODUCTION,
-MODIFICATION AND/OR DISTRIBUTION OF THE APPLE SOFTWARE, HOWEVER CAUSED
-AND WHETHER UNDER THEORY OF CONTRACT, TORT (INCLUDING NEGLIGENCE),
-STRICT LIABILITY OR OTHERWISE, EVEN IF APPLE HAS BEEN ADVISED OF THE
-POSSIBILITY OF SUCH DAMAGE.
-
-Copyright (C) 2012 Apple Inc. All Rights Reserved.
-
-
-*/
 
 #import "CaptureSessionController.h"
 
@@ -60,6 +11,8 @@ static OSStatus PushCurrentInputBufferIntoAudioUnit(void                       *
 
 @implementation CaptureSessionController
 
+@synthesize reverbValue=reverbValue_;
+@synthesize delayValue=delayValue_;
 #pragma mark ======== Setup and teardown methods =========
 
 - (id)init
@@ -67,11 +20,23 @@ static OSStatus PushCurrentInputBufferIntoAudioUnit(void                       *
 	self = [super init];
 	
 	if (self) {
-        NSArray  *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-        NSString *documentsDirectory = [paths objectAtIndex:0];
-        NSString *destinationFilePath = [NSString stringWithFormat: @"%@/AudioRecording.aif", documentsDirectory];
-        _outputFile = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, (CFStringRef)destinationFilePath, kCFURLPOSIXPathStyle, false);
-    
+        NSArray  *pathsSpring = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+        NSArray  *pathsSummer = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+        NSArray  *pathsAutumn = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+        NSArray  *pathsWinter = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+        NSString *documentsDirectoryOne = [pathsSpring objectAtIndex:0];
+        NSString *documentsDirectoryTwo = [pathsSummer objectAtIndex:0];
+        NSString *documentsDirectoryThree = [pathsAutumn objectAtIndex:0];
+        NSString *documentsDirectoryFour = [pathsWinter objectAtIndex:0];
+        NSString *destinationFilePathOne = [NSString stringWithFormat: @"%@/spAudioRecording.aif", documentsDirectoryOne];
+        NSString *destinationFilePathTwo = [NSString stringWithFormat: @"%@/smAudioRecording.aif", documentsDirectoryTwo];
+        NSString *destinationFilePathThree = [NSString stringWithFormat: @"%@/atAudioRecording.aif", documentsDirectoryThree];
+        NSString *destinationFilePathFour = [NSString stringWithFormat: @"%@/wtAudioRecording.aif", documentsDirectoryFour];
+        _outputFile = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, (CFStringRef)destinationFilePathOne, kCFURLPOSIXPathStyle, false);
+        _outputFilex = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, (CFStringRef)destinationFilePathTwo, kCFURLPOSIXPathStyle, false);
+        _outputFilexx = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, (CFStringRef)destinationFilePathThree, kCFURLPOSIXPathStyle, false);
+        _outputFilexxx = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, (CFStringRef)destinationFilePathFour, kCFURLPOSIXPathStyle, false);
+        
         [self registerForNotifications];
 	}
 	
@@ -110,18 +75,18 @@ static OSStatus PushCurrentInputBufferIntoAudioUnit(void                       *
     dispatch_release(audioDataOutputQueue);
 	
 #pragma - graph
-    // AVFoundation does not currently provide a way to set the output format of the AVCaptureAudioDataOutput object,
-    // therefore unlike OS X where you could simply use the delay AU and have AVCaptureAudioDataOutput return samples
-    // in a format that the delay AU can ingest by using the audioSettings method, for iOS you need to use the Converter AU
-    // along with the delay AU in a Graph. Note that we don't start or stop the graph and we don't use an output unit
-    // all we are doing is chaining two AUs together then pulling on the delay when we call render, this delivers data in
-    // the current AVCaptureAudioDataOutput format to the converter which then converts the format for the delay which
-    // performs the processing we want delivering the data into our output buffer list for recording if we choose
+    // AVFoundationは現在AVCaptureAudioDataOutputdoesのアウトプットフォーマットを設定する方法を提供していません。
+    // それ故OSXとは違い、あなたがディレイユニットを単に使用したりAVCaptureAudioDataOutputを持つ場合、サンプルを返します、ディレイユニットがセッティングメソッドを使って摂取できる方法で。iosではコンバーターユニットを使う必要があります、グラフ中のディレイユニットに沿って。我々はグラフを開始停止しないこと、そしてアウトプットユニットを使わないことに気を止めてください。
+    //我々がやっていることは二つのユニットをつなぎ、コールバックをよんだときディレイを引き出す、という事です。
+    //選択した場合、現在のAVCaptureAudioDataOutput形式でデータをコンバータへ配信し、ディレイの為にフォーマットを変換し、そして我々が録音するため、アウトプットのバッファリストにデータを配信したい処理を実行します。
     
 	// Create an AUGraph of the converter audio unit and the delay effect audio unit, the resulting effect is added to the audio when it is written to the file
 
     AUNode delayNode;
+    AUNode reverbNode; //
     AUNode converterNode;
+    
+    
     
     // create a new AUGraph
 	OSStatus err = NewAUGraph(&auGraph);
@@ -131,10 +96,16 @@ static OSStatus PushCurrentInputBufferIntoAudioUnit(void                       *
     CAComponentDescription delay_EffectAudioUnitDescription(kAudioUnitType_Effect,
                                                             kAudioUnitSubType_Delay,
                                                             kAudioUnitManufacturer_Apple);
+    //reverb
+    CAComponentDescription reverb_desc(kAudioUnitType_Effect,
+                                       kAudioUnitSubType_Reverb2,
+                                       kAudioUnitManufacturer_Apple);
     // converter
     CAComponentDescription converter_desc(kAudioUnitType_FormatConverter,
                                           kAudioUnitSubType_AUConverter,
                                           kAudioUnitManufacturer_Apple);
+    
+    
     
     // add nodes to graph
     err = AUGraphAddNode(auGraph,
@@ -143,15 +114,22 @@ static OSStatus PushCurrentInputBufferIntoAudioUnit(void                       *
     if (err) { printf("AUGraphNewNode 2 result %lu %4.4s\n", (unsigned long)err, (char*)&err); return NO; }
     
     err = AUGraphAddNode(auGraph,
+                         &reverb_desc,
+                         &reverbNode);
+    if (err) { printf("AUGraphNewNode 0 result %lu %4.4s\n", (unsigned long)err, (char*)&err); return NO; }
+    err = AUGraphAddNode(auGraph,
                          &converter_desc,
                          &converterNode);
 	if (err) { printf("AUGraphNewNode 3 result %lu %4.4s\n", (unsigned long)err, (char*)&err); return NO; }
     
-    // connect a node's output to a node's input
-    // au converter -> delay
     
-    err = AUGraphConnectNodeInput(auGraph, converterNode, 0, delayNode, 0);
+    // connect a node's output to a node's input
+    // au converter -> reverb -> delay
+    
+    err = AUGraphConnectNodeInput(auGraph, converterNode, 0, reverbNode, 0);
 	if (err) { printf("AUGraphConnectNodeInput result %lu %4.4s\n", (unsigned long)err, (char*)&err); return NO; }
+    err = AUGraphConnectNodeInput(auGraph, reverbNode, 0, delayNode, 0);
+    if (err) { printf("AUGraphConnectNodeInput result %lu %4.4s\n", (unsigned long)err, (char*)&err); return NO; }
 	
     // open the graph -- オーディオユニットを開きますが、初期化はしません。(no resource allocation occurs here)
 	err = AUGraphOpen(auGraph);
@@ -162,13 +140,19 @@ static OSStatus PushCurrentInputBufferIntoAudioUnit(void                       *
     if (err) { printf("AUGraphNodeInfo result %ld %08X %4.4s\n", (long)err, (unsigned int)err, (char*)&err); return NO; }
     err = AUGraphNodeInfo(auGraph, delayNode, NULL, &delayAudioUnit);
     if (err) { printf("AUGraphNodeInfo result %ld %08X %4.4s\n", (long)err, (unsigned int)err, (char*)&err); return NO; }
-
+    err = AUGraphNodeInfo(auGraph,
+                          reverbNode,
+                          NULL,
+                          &reverbUnit);
+    if (err) { printf("AUGraphNodeInfo result %ld %08X %4.4s\n", (long)err, (unsigned int)err, (char*)&err); return NO; }
+    
+    
 #pragma - callback to Node
     // コンバーターユニットのインプットにコールバックをセットします。ユニットにインプットがあった時、アウトプット(currentInputAudioBufferList)がユニットに流れる
     //Set a callback on the converter audio unit that will supply the audio buffers received from the capture audio data output
     AURenderCallbackStruct renderCallbackStruct;
     renderCallbackStruct.inputProc = PushCurrentInputBufferIntoAudioUnit;
-    renderCallbackStruct.inputProcRefCon = self;
+    renderCallbackStruct.inputProcRefCon = (__bridge void *)self; //ARCが有効な場合、CFStringRefのようなC言語のオブジェクトから、Objective-Cのオブジェクトにキャストするには__bridgeキャストを行う必要があります。
     
     err = AUGraphSetNodeInputCallback(auGraph,
                                       converterNode,
@@ -195,7 +179,8 @@ static OSStatus PushCurrentInputBufferIntoAudioUnit(void                       *
         [captureSession removeObserver:self forKeyPath:@"interrupted" context:nil];
         [captureSession removeObserver:self forKeyPath:@"running" context:nil];
     
-        [captureSession release]; captureSession = nil;
+        [captureSession release];
+        captureSession = nil;
     }
     
     // Create the capture session
@@ -242,10 +227,18 @@ static OSStatus PushCurrentInputBufferIntoAudioUnit(void                       *
 	[captureAudioDataOutput release];
 	
 	if (_outputFile) { CFRelease(_outputFile); _outputFile = NULL; }
+    if (_outputFilex) { CFRelease(_outputFilex); _outputFilex = NULL; }
+    if (_outputFilexx) { CFRelease(_outputFilexx); _outputFilexx = NULL; }
+    if (_outputFilexxx) { CFRelease(_outputFilexxx); _outputFilexxx = NULL; }
 	
 	if (extAudioFile)
         ExtAudioFileDispose(extAudioFile);
-    
+    if (extAudioFilex)
+        ExtAudioFileDispose(extAudioFilex);
+    if (extAudioFilexx)
+        ExtAudioFileDispose(extAudioFilexx);
+    if (extAudioFilexxx)
+        ExtAudioFileDispose(extAudioFilexxx);
 	if (auGraph) {
 		if (didSetUpAudioUnits)
 			AUGraphUninitialize(auGraph);
@@ -261,13 +254,12 @@ static OSStatus PushCurrentInputBufferIntoAudioUnit(void                       *
 #pragma mark ======== Audio capture methods =========
 
 /*
- AVCaptureSessionによってキャプチャーされたフレームを含むCMSampleBufferRefオブジェクトを受信したときに、AVCaptureAudioDataOutputによって呼ばれます。
- 
- Called by AVCaptureAudioDataOutput as it receives CMSampleBufferRef objects containing audio frames captured by the AVCaptureSession.
- Each CMSampleBufferRef will contain multiple frames of audio encoded in the default AVCapture audio format. This is where all the work is done,
- the first time through setting up and initializing the graph and format settings then continually rendering the provided audio though the
- audio unit graph manually and if we're recording, writing the processed audio out to the file.
+ AVCaptureSessionによってキャプチャーされたフレームを含むCMSampleBufferRefオブジェクトを受信したときにAVCaptureAudioDataOutputによって呼ばれます。
+ それぞれのCMSampleBufferRefはエンコードされたマルチフレームをデフォルトフォーマットで保有しています。これがすべての処理が行われる場所です。
+ グラフとフォーマットの初期化と設定をして初めて,継続的な供給されるオーディオのレンダリングとが行われ、録音する場合は手動で、ファイルへの書き出しが行われます
 */
+//すこし長いがキャプチャーしている間ずっと呼ばれている関数
+
 - (void)captureOutput:(AVCaptureOutput *)captureOutput
         didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer
         fromConnection:(AVCaptureConnection *)connection
@@ -342,7 +334,17 @@ static OSStatus PushCurrentInputBufferIntoAudioUnit(void                       *
                                            0,
                                            &graphOutputASBD,
                                            sizeof(graphOutputASBD));
+            
+            err = AudioUnitSetProperty(reverbUnit,
+                                       kAudioUnitProperty_StreamFormat,
+                                       kAudioUnitScope_Output,
+                                       0,
+                                       &graphOutputASBD,
+                                       sizeof(graphOutputASBD));
         }
+        
+        reverbValue_ = [[reverbValue alloc] initWithReverbUnit:reverbUnit];
+        delayValue_ = [[delayValue alloc] initWithDelayUnit:delayAudioUnit];
 #pragma  - initialize the graph
         // Initialize the graph
 		if (noErr == err)
@@ -372,12 +374,12 @@ static OSStatus PushCurrentInputBufferIntoAudioUnit(void                       *
     
     // Create an output AudioBufferList as the destination for the AU rendered audio
     if (NULL == outputBufferList) {
-        outputBufferList = new AUOutputBL(graphOutputASBD, numberOfFrames);
+        outputBufferList = new AUOutputBL(graphOutputASBD, numberOfFrames); //自分でcast
     }
     outputBufferList->Prepare(numberOfFrames);
     
     /*
-     サンプルバッファーからバッファリストを作って、インプットのバッファリストの変数にアサインします。下述のレンダーコールバックがこの変数にアクセス出来る
+     サンプルバッファー（最初に書くユニットを通って出る音）からバッファリストを作って、インプット（書き込む予定の）のバッファリストの変数にアサインします。下述のPushCurrentInputBufferIntoAudioUnitというレンダーコールバックがこの変数にアクセス出来る
      Get an audio buffer list from the sample buffer and assign it to the currentInputAudioBufferList instance variable.
      The the audio unit render callback called PushCurrentInputBufferIntoAudioUnit can access this value by calling the
      currentInputAudioBufferList method.
@@ -401,11 +403,13 @@ static OSStatus PushCurrentInputBufferIntoAudioUnit(void                       *
     if (noErr == err) {
         // Tell the effect audio unit to render -- This will synchronously call PushCurrentInputBufferIntoAudioUnit, which will
         // feed currentInputAudioBufferList into the effect audio unit
+        
         err = AudioUnitRender(delayAudioUnit, &flags, &timeStamp, 0, numberOfFrames, outputBufferList->ABL());
+        err = AudioUnitRender(reverbUnit, &flags, &timeStamp, 0, numberOfFrames, outputBufferList->ABL());
         if (err) {
             // kAudioUnitErr_TooManyFramesToProcess may happen on a route change if CMSampleBufferGetNumSamples
             // returns more than 1024 (the default) number of samples. This is ok and on the next cycle this error should not repeat
-            NSLog(@"AudioUnitRender failed! (%ld)", err);
+            NSLog(@"AudioUnitRender failed! (%d)", (int)err);
         }
         
         CFRelease(blockBufferOut);
@@ -420,6 +424,15 @@ static OSStatus PushCurrentInputBufferIntoAudioUnit(void                       *
             if (extAudioFile) {
                 err = ExtAudioFileWriteAsync(extAudioFile, numberOfFrames, outputBufferList->ABL());
             }
+            if (extAudioFilex) {
+                err = ExtAudioFileWriteAsync(extAudioFilex, numberOfFrames, outputBufferList->ABL());
+            }
+            if (extAudioFilexx) {
+                err = ExtAudioFileWriteAsync(extAudioFilexx, numberOfFrames, outputBufferList->ABL());
+            }
+            if (extAudioFilexxx) {
+                err = ExtAudioFileWriteAsync(extAudioFilexxx, numberOfFrames, outputBufferList->ABL());
+            }
         }// @synchronized
         if (err) {
             NSLog(@"ExtAudioFileWriteAsync failed! (%ld)", (long)err);
@@ -428,7 +441,7 @@ static OSStatus PushCurrentInputBufferIntoAudioUnit(void                       *
 }
 
 /*
- Used by PushCurrentInputBufferIntoAudioUnit() to access the current audio buffer list
+ ユニットから出てキャプチャーされているアウトプットにアクセスするのにPushCurrentInputBufferIntoAudioUnitが使われています。Used by PushCurrentInputBufferIntoAudioUnit() to access the current audio buffer list
  that has been output by the AVCaptureAudioDataOutput.
 */
 - (AudioBufferList *)currentInputAudioBufferList
@@ -498,11 +511,11 @@ static OSStatus PushCurrentInputBufferIntoAudioUnit(void                       *
                                                          CAStreamBasicDescription::kPCMFormatInt16,
                                                          true);
                 recordingFormat.mFormatFlags |= kAudioFormatFlagIsBigEndian;
-                
+            
                 NSLog(@"Recording Audio Format:");
                 recordingFormat.Print();
                        
-                err = ExtAudioFileCreateWithURL(_outputFile,
+                err = ExtAudioFileCreateWithURL(_outputFile, //URL - 大事
                                                 kAudioFileAIFFType,
                                                 &recordingFormat,
                                                 currentRecordingChannelLayout,
@@ -530,7 +543,138 @@ static OSStatus PushCurrentInputBufferIntoAudioUnit(void                       *
         }
     }
 }
-
+- (void)startRecordingx
+{
+    if (!self.isRecordingx) {
+        OSErr err = kAudioFileUnspecifiedError;
+        @synchronized(self) {
+            if (!extAudioFilex) {
+                
+                CAStreamBasicDescription recordingFormat(currentInputASBD.mSampleRate,
+                                                         currentInputASBD.mChannelsPerFrame,
+                                                         CAStreamBasicDescription::kPCMFormatInt16,
+                                                         true);
+                recordingFormat.mFormatFlags |= kAudioFormatFlagIsBigEndian;
+                
+                NSLog(@"Recording Audio Format:");
+                recordingFormat.Print();
+                
+                err = ExtAudioFileCreateWithURL(_outputFilex, //URL - 大事
+                                                kAudioFileAIFFType,
+                                                &recordingFormat,
+                                                currentRecordingChannelLayout,
+                                                kAudioFileFlags_EraseFile,
+                                                &extAudioFilex);
+                if (noErr == err)
+                    // client format is the output format from the delay unit
+                    err = ExtAudioFileSetProperty(extAudioFilex,
+                                                  kExtAudioFileProperty_ClientDataFormat,
+                                                  sizeof(graphOutputASBD),
+                                                  &graphOutputASBD);
+                
+                if (noErr != err) {
+                    if (extAudioFilex) ExtAudioFileDispose(extAudioFilex);
+                    extAudioFilex = NULL;
+                }
+            }
+        } // @synchronized
+        
+        if (noErr == err) {
+            self.recordingx = YES;
+            NSLog(@"Recording Started");
+        } else {
+            NSLog(@"Failed to setup audio file! (%ld)", (long)err);
+        }
+    }
+}
+- (void)startRecordingxx
+{
+    if (!self.isRecordingxx) {
+        OSErr err = kAudioFileUnspecifiedError;
+        @synchronized(self) {
+            if (!extAudioFilexx) {
+                
+                CAStreamBasicDescription recordingFormat(currentInputASBD.mSampleRate,
+                                                         currentInputASBD.mChannelsPerFrame,
+                                                         CAStreamBasicDescription::kPCMFormatInt16,
+                                                         true);
+                recordingFormat.mFormatFlags |= kAudioFormatFlagIsBigEndian;
+                
+                NSLog(@"Recording Audio Format:");
+                recordingFormat.Print();
+                
+                err = ExtAudioFileCreateWithURL(_outputFilexx, //URL - 大事
+                                                kAudioFileAIFFType,
+                                                &recordingFormat,
+                                                currentRecordingChannelLayout,
+                                                kAudioFileFlags_EraseFile,
+                                                &extAudioFilexx);
+                if (noErr == err)
+                    // client format is the output format from the delay unit
+                    err = ExtAudioFileSetProperty(extAudioFilexx,
+                                                  kExtAudioFileProperty_ClientDataFormat,
+                                                  sizeof(graphOutputASBD),
+                                                  &graphOutputASBD);
+                
+                if (noErr != err) {
+                    if (extAudioFilexx) ExtAudioFileDispose(extAudioFilexx);
+                    extAudioFilexx = NULL;
+                }
+            }
+        } // @synchronized
+        
+        if (noErr == err) {
+            self.recordingxx = YES;
+            NSLog(@"Recording Started");
+        } else {
+            NSLog(@"Failed to setup audio file! (%ld)", (long)err);
+        }
+    }
+}
+- (void)startRecordingxxx
+{
+    if (!self.isRecordingxxx) {
+        OSErr err = kAudioFileUnspecifiedError;
+        @synchronized(self) {
+            if (!extAudioFilexxx) {
+                
+                CAStreamBasicDescription recordingFormat(currentInputASBD.mSampleRate,
+                                                         currentInputASBD.mChannelsPerFrame,
+                                                         CAStreamBasicDescription::kPCMFormatInt16,
+                                                         true);
+                recordingFormat.mFormatFlags |= kAudioFormatFlagIsBigEndian;
+                
+                NSLog(@"Recording Audio Format:");
+                recordingFormat.Print();
+                
+                err = ExtAudioFileCreateWithURL(_outputFilexxx, //URL - 大事
+                                                kAudioFileAIFFType,
+                                                &recordingFormat,
+                                                currentRecordingChannelLayout,
+                                                kAudioFileFlags_EraseFile,
+                                                &extAudioFilexxx);
+                if (noErr == err)
+                    // client format is the output format from the delay unit
+                    err = ExtAudioFileSetProperty(extAudioFilexxx,
+                                                  kExtAudioFileProperty_ClientDataFormat,
+                                                  sizeof(graphOutputASBD),
+                                                  &graphOutputASBD);
+                
+                if (noErr != err) {
+                    if (extAudioFilexxx) ExtAudioFileDispose(extAudioFilexxx);
+                    extAudioFilexxx = NULL;
+                }
+            }
+        } // @synchronized
+        
+        if (noErr == err) {
+            self.recordingxxx = YES;
+            NSLog(@"Recording Started");
+        } else {
+            NSLog(@"Failed to setup audio file! (%ld)", (long)err);
+        }
+    }
+}
 - (void)stopRecording
 {
     if (self.isRecording) {
@@ -542,13 +686,70 @@ static OSStatus PushCurrentInputBufferIntoAudioUnit(void                       *
                 extAudioFile = NULL;
             }
         } // @synchronized
-
-        AudioUnitReset(delayAudioUnit, kAudioUnitScope_Global, 0);
+        AudioUnitReset(delayAudioUnit, kAudioUnitScope_Global, 0); //3/24追加
+        //AudioUnitReset(reverbUnit, kAudioUnitScope_Global, 0);
         
         self.recording = NO;
         NSLog(@"Recording Stopped (%ld)", (long)err);
     }
 }
+
+- (void)stopRecordingx
+{
+    if (self.isRecordingx) {
+        OSStatus err = kAudioFileNotOpenError;
+        @synchronized(self) {
+            if (extAudioFilex) {
+                // Close the file by disposing the ExtAudioFile
+                err = ExtAudioFileDispose(extAudioFilex);
+                extAudioFilex = NULL;
+            }
+        } // @synchronized
+        AudioUnitReset(delayAudioUnit, kAudioUnitScope_Global, 0); //3/24追加
+        //AudioUnitReset(reverbUnit, kAudioUnitScope_Global, 0);
+        
+        self.recordingx = NO;
+        NSLog(@"Recording Stopped (%ld)", (long)err);
+    }
+}
+
+- (void)stopRecordingxx
+{
+    if (self.isRecordingxx) {
+        OSStatus err = kAudioFileNotOpenError;
+        @synchronized(self) {
+            if (extAudioFilexx) {
+                // Close the file by disposing the ExtAudioFile
+                err = ExtAudioFileDispose(extAudioFilexx);
+                extAudioFilexx = NULL;
+            }
+        } // @synchronized
+        AudioUnitReset(delayAudioUnit, kAudioUnitScope_Global, 0); //3/24追加
+        //AudioUnitReset(reverbUnit, kAudioUnitScope_Global, 0);
+        
+        self.recordingxx = NO;
+        NSLog(@"Recording Stopped (%ld)", (long)err);
+    }
+}
+- (void)stopRecordingxxx
+{
+    if (self.isRecordingxxx) {
+        OSStatus err = kAudioFileNotOpenError;
+        @synchronized(self) {
+            if (extAudioFilexxx) {
+                // Close the file by disposing the ExtAudioFile
+                err = ExtAudioFileDispose(extAudioFilexxx);
+                extAudioFilexxx = NULL;
+            }
+        } // @synchronized
+        AudioUnitReset(delayAudioUnit, kAudioUnitScope_Global, 0); //3/24追加
+        //AudioUnitReset(reverbUnit, kAudioUnitScope_Global, 0);
+        
+        self.recordingxxx = NO;
+        NSLog(@"Recording Stopped (%ld)", (long)err);
+    }
+}
+
 
 #pragma mark ======== Observers =========
 
@@ -598,7 +799,7 @@ static OSStatus PushCurrentInputBufferIntoAudioUnit(void                       *
 {
     NSError *error = [notification.userInfo objectForKey: AVCaptureSessionErrorKey];
     
-    NSLog(@"AVFoundation error %d", [error code]);
+    NSLog(@"AVFoundation error %ld", (long)[error code]);
 }
 
 // log route changes
@@ -623,6 +824,15 @@ static OSStatus PushCurrentInputBufferIntoAudioUnit(void                       *
     if (self.isRecording) {
         [self stopRecording];
     }
+    if (self.isRecordingx) {
+        [self stopRecordingx];
+    }
+    if (self.isRecordingxx){
+        [self stopRecordingxx];
+    }
+    if (self.isRecordingxxx) {
+        [self stopRecordingxxx];
+    }
 }
 
 // we want to start the capture session again automatically on active
@@ -638,6 +848,7 @@ static OSStatus PushCurrentInputBufferIntoAudioUnit(void                       *
 #pragma mark ======== AudioUnit render callback =========
 
 /*
+ AudioUnitRender()が呼ばれるときならいつでもエフェクトユニットによって同時に呼ばれます。
  Synchronously called by the effect audio unit whenever AudioUnitRender() is called.
  Used to feed the audio samples output by the ATCaptureAudioDataOutput to the AudioUnit.
  */
@@ -648,7 +859,7 @@ static OSStatus PushCurrentInputBufferIntoAudioUnit(void *							inRefCon,
 													UInt32							inNumberFrames,
 													AudioBufferList *				ioData)
 {
-	CaptureSessionController *self = (CaptureSessionController *)inRefCon;
+	CaptureSessionController *self = (__bridge CaptureSessionController *)inRefCon;
 	AudioBufferList *currentInputAudioBufferList = [self currentInputAudioBufferList];
 	UInt32 bufferIndex, bufferCount = currentInputAudioBufferList->mNumberBuffers;
 	

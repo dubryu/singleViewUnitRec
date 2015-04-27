@@ -87,9 +87,9 @@
 //- (IBAction)didchangeDecayTimeAtNyquist:(UISlider *)sender;
 //- (IBAction)didchangeRandomizeReflections:(UISlider *)sender;
 //- (IBAction)resets;
-
 //- (IBAction)descPort:(id)sender;
 //@property (readonly) NSString *portType;
+
 @property (nonatomic,readonly)reverbValue *reverbValue;
 @property (nonatomic,readonly)delayValue *delayValue;
 
