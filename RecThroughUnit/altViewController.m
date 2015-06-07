@@ -4,7 +4,7 @@
 //
 //  Created by KatayamaRyusuke on 2015/02/18.
 //  Copyright (c) 2015年 片山隆介. All rights reserved.
-//  ARCをオフにして、releaseを明示的にすること　
+//
 
 #import "altViewController.h"
 #import "audioSetup.h"
@@ -26,18 +26,37 @@
 @synthesize DelaySliderOne,DelaySliderTwo,DelaySliderthree,DelaySliderFour;
 @synthesize buttonSpring,buttonSummer,buttonAutumn,buttonWinter,playOnlySpring,playOnlySummer,playOnlyAutumn,playOnlyWinter;
 
+//Controller = ユーザの入力
+//model = 処理
+//view = 出力、表示
+//switch文 で、　~何回めなら変数Xに〜番目のpngファイルを代入、そして同一の式で処理が行われるようにする
+//位置をずらすなら~回数毎に[~回目]*[ずらしたい長さ]とする
+//とにかく第三者が読みやすいようにする為
+//先にauto constraintsとデザインパターンの『目的』を明確にしてから手段を効率化する
+
+//-(id) init {
+//    if (self = [super init]) {
+//        // ViewControllerに対応するViewを保持
+//        _hogeView = [[altView alloc] init];
+//    }
+//    return self;
+//}
+
+//-(void) loadView {
+//    self.view = _hogeView;
+//    NSLog(@"%@",[NSThread callStackSymbols]);
+//}
 
 - (void)viewDidLoad {
+//    NSLog(@"%@",[NSThread callStackSymbols]);
     [super viewDidLoad];
-    // Do any additional setup after loading the view, typically from a nib.
-//    UIImage *greenImage = [[UIImage imageNamed:@"green_button.png"] stretchableImageWithLeftCapWidth:12.0 topCapHeight:0.0];
-//    UIImage *redImage = [[UIImage imageNamed:@"red_button.png"] stretchableImageWithLeftCapWidth:12.0 topCapHeight:0.0];
-//    UIImage *reverbMax = [[UIImage imageNamed:@"reverbMax" ]stretchableImageWithLeftCapWidth:12.0 topCapHeight:0.0];
-//    UIImage *reverbMin = [[UIImage imageNamed:@"reverbMin" ]stretchableImageWithLeftCapWidth:12.0 topCapHeight:0.0];
-    //trying resizableImageWithCapInsets
-//    UIEdgeInsets insets = UIEdgeInsetsMake(16, 6, 16, 6);
-//    UIImage *delayMax = [[UIImage imageNamed:@"delayMax"]resizableImageWithCapInsets:insets];
-//    UIImage *delayMin = [[UIImage imageNamed:@"delayMin"] resizableImageWithCapInsets:insets];
+    //[self.view setNeedsLayout];
+//    NSLog(@"viewIs...%@", self.view);
+//    NSLog(@"superFromAltViewControllerIs..%@",super.view);
+    float windowWidth = self.view.frame.size.width;
+    float windowHeight =self.view.frame.size.height;
+    
+    //各イメージをよみこむ
     UIImage *reverbMaxSl = [[UIImage imageNamed:@"reverbMaxSl"]stretchableImageWithLeftCapWidth:12.0 topCapHeight:0.0];
     UIImage *reverbMinSl = [[UIImage imageNamed:@"reverbMinSl"]stretchableImageWithLeftCapWidth:12.0 topCapHeight:0.0];
     UIImage *delayMaxSl = [[UIImage imageNamed:@"delayMaxSl"]stretchableImageWithLeftCapWidth:12.0 topCapHeight:0.0];
@@ -46,56 +65,95 @@
     UIEdgeInsets edgeInsets = UIEdgeInsetsMake(8, 8, 8, 8);
     UIImage *backR = [[UIImage imageNamed:@"backColorReverb.png"]resizableImageWithCapInsets:edgeInsets];
     UIImage *backD = [[UIImage imageNamed:@"backColorDelay.png"]resizableImageWithCapInsets:edgeInsets];
-    //view for effect label
-    CGRect rect = CGRectMake(self.view.frame.size.width/4, self.view.frame.size.height*11/15, self.view.frame.size.width*3/8, self.view.frame.size.height*4/15);
+    
+    //各スペース
+    //view for reverb label
+    CGRect rect = CGRectMake(windowWidth/4, windowHeight*11/15, windowWidth*3/8, windowHeight*4/15);
     UIImageView *imageView = [[UIImageView alloc]initWithFrame:rect];
     imageView.image = [UIImage imageNamed:@"reverbTitle"];
     [self.view addSubview:imageView];
-    //reverb slider back ground
-    CGRect backRect = CGRectMake(self.view.frame.size.width/4, 20, self.view.frame.size.width*3/4, self.view.frame.size.height*7/15);
-    UIImageView *backImageView = [[UIImageView alloc]initWithFrame:backRect];
-    backImageView.image = backR;
-    [self.view addSubview:backImageView];
     //view for delay label
-    CGRect rectTwo = CGRectMake(self.view.frame.size.width*5/8, self.view.frame.size.height*11/15, self.view.frame.size.width*3/8, self.view.frame.size.height*4/15);
+    CGRect rectTwo = CGRectMake(windowWidth*5/8, windowHeight*11/15, windowWidth*3/8, windowHeight*4/15);
     UIImageView *imageViewTwo = [[UIImageView alloc]initWithFrame:rectTwo];
     imageViewTwo.image = [UIImage imageNamed:@"delayTitle"];
     [self.view addSubview:imageViewTwo];
+    
     //delay slider back ground
     CGRect backRectD = CGRectMake(self.view.frame.size.width/4, self.view.frame.size.height*7/15+20, self.view.frame.size.width*3/4, self.view.frame.size.height*4/15);
     UIImageView *backImageViewD = [[UIImageView alloc]initWithFrame:backRectD];
     backImageViewD.image = backD;
     [self.view addSubview:backImageViewD];
-    //delay slider back ground
-//    CGRect backRect = CGRectMake(self.view.frame.size.width/4, 20, self.view.frame.size.width*3/8, self.view.frame.size.height*6/15);
-//    UIImageView *backImageView = [[UIImageView alloc]initWithFrame:backRect];
-//    backImageView.image = [UIImage imageNamed:@"backColorReverb"];
-//    [self.view addSubview:backImageView];
-    
-//    [self.startButton setBackgroundImage:greenImage forState:UIControlStateNormal];
-//    [self.startButton setBackgroundImage:redImage forState:UIControlStateSelected];
+    //reverb slider back ground
+    CGRect backRect = CGRectMake(self.view.frame.size.width/4, 20, self.view.frame.size.width*3/4, self.view.frame.size.height*7/15);
+    UIImageView *backImageView = [[UIImageView alloc]initWithFrame:backRect];
+    backImageView.image = backR;
+    [self.view addSubview:backImageView];
+
 #pragma SliderAndLabel for reverb
 
     UIColor *colorForReverb = [UIColor colorWithRed:0.2 green:0.0 blue:0.4 alpha:0.1];
-    ReverbSliderOne.backgroundColor = colorForReverb;
     
-    ReverbSliderOne = [[UISlider alloc]initWithFrame:CGRectMake(self.view.frame.size.width/4,20,self.view.frame.size.width*3/4,self.view.frame.size.height/15)];
+    ReverbSliderOne.backgroundColor = colorForReverb;
+    ReverbSliderOne = [[UISlider alloc]initWithFrame:CGRectMake(windowWidth/4, 20, windowWidth*3/4 , windowHeight/15)];
+    //[ReverbSliderOne setTranslatesAutoresizingMaskIntoConstraints:NO];
     [ReverbSliderOne setMaximumTrackImage:reverbMaxSl forState:UIControlStateNormal];
     [ReverbSliderOne setMinimumTrackImage:reverbMinSl forState:UIControlStateNormal];
     [ReverbSliderOne setThumbImage:[UIImage imageNamed:@"sliderThumb.png"] forState:UIControlStateNormal];
-    ReverbSliderOne.maximumValue = 100;
     [self.view addSubview:ReverbSliderOne];
+    ReverbSliderOne.maximumValue = 100;
+    ReverbSliderOne.minimumValue = 0;
     [ReverbSliderOne addTarget:self action:@selector(didchangeDryWetMixSlider:)forControlEvents:UIControlEventValueChanged];
-    //label assciated with changing from slider
+    
+//    //AutoLayout設定を保持するArrayを用意
+//    NSMutableArray *layoutConstraints = [[NSMutableArray alloc] init];
+//    //上
+//    [layoutConstraints addObject:[NSLayoutConstraint constraintWithItem:ReverbSliderOne
+//                                                              attribute:NSLayoutAttributeTop
+//                                                              relatedBy:NSLayoutRelationEqual
+//                                                                 toItem:self.view
+//                                                              attribute:NSLayoutAttributeTop
+//                                                             multiplier:1.0
+//                                                               constant:20.0]];
+//    //下
+//    [layoutConstraints addObject:[NSLayoutConstraint constraintWithItem:ReverbSliderOne
+//                                                              attribute:NSLayoutAttributeBottom
+//                                                              relatedBy:NSLayoutRelationEqual
+//                                                                 toItem:self.view
+//                                                              attribute:NSLayoutAttributeBottom
+//                                                             multiplier:1.0
+//                                                               constant:200]];
+//    //左
+//    [layoutConstraints addObject:[NSLayoutConstraint constraintWithItem:ReverbSliderOne
+//                                                              attribute:NSLayoutAttributeLeft
+//                                                              relatedBy:NSLayoutRelationEqual
+//                                                                 toItem:self.view
+//                                                              attribute:NSLayoutAttributeLeft
+//                                                             multiplier:1.0
+//                                                               constant:10]];
+//    //右
+//    [layoutConstraints addObject:[NSLayoutConstraint constraintWithItem:ReverbSliderOne
+//                                                              attribute:NSLayoutAttributeRight
+//                                                              relatedBy:NSLayoutRelationEqual
+//                                                                 toItem:self.view
+//                                                              attribute:NSLayoutAttributeRight
+//                                                             multiplier:1.0
+//                                                               constant:-10]];
+//    //親ViewにAutoLayout設定を追加する
+//    [self.view addConstraints:layoutConstraints];
+
+
+    //label associated with changing from slider
     labelForRevOne = [[UILabel alloc] initWithFrame:CGRectMake(self.view.frame.size.width*3/4-20,20,50,15)];
     [self.view addSubview:labelForRevOne];
     UILabel *titleLabel = [[UILabel alloc]initWithFrame:CGRectMake(self.view.frame.size.width*3/4-200,20,200,15)];
     [titleLabel setText:@"reverbDryWet"];
     titleLabel.textColor = [UIColor whiteColor];
+    titleLabel.adjustsFontSizeToFitWidth = YES; //領域内に表示文字列がなるべく収まる自動調整
     [self.view addSubview:titleLabel];
+    
     //reverbGain
     ReverbSliderTwo.backgroundColor = colorForReverb;
-    ReverbSliderTwo = [[UISlider alloc]initWithFrame:CGRectMake(self.view.frame.size.width/4, self.view.frame.size.height/15+20, self.view.frame.size.width*3/4 , self.view.frame.size.height*1/15)];
+    ReverbSliderTwo = [[UISlider alloc]initWithFrame:CGRectMake(windowWidth/4, windowHeight/15+20, windowWidth*3/4 , windowHeight/15)];
     [ReverbSliderTwo setMaximumTrackImage:reverbMaxSl forState:UIControlStateNormal];
     [ReverbSliderTwo setMinimumTrackImage:reverbMinSl forState:UIControlStateNormal];
     [ReverbSliderTwo setThumbImage:[UIImage imageNamed:@"sliderThumb.png"] forState:UIControlStateNormal];

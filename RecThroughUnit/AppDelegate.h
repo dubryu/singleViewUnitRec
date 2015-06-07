@@ -8,9 +8,14 @@
 
 #import <UIKit/UIKit.h>
 
+@class altViewController;
+
 @interface AppDelegate : UIResponder <UIApplicationDelegate>
 
-@property (strong, nonatomic) UIWindow *window;
+@property (nonatomic, strong) UIWindow *window;
+
+@property (strong, nonatomic) altViewController *altviewController;
+
 
 
 @end

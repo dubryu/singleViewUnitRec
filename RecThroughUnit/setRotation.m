@@ -14,7 +14,7 @@
 
 @implementation setRotation
 
-- (void)viewDidLoad {
+- (void)viewDidLoad{
     [super viewDidLoad];
     // Do any additional setup after loading the view.
 }
@@ -24,6 +24,16 @@
     // Dispose of any resources that can be recreated.
 }
 
+- (BOOL)shouldAutorotate
+{
+    return NO;
+}
+
+- (NSUInteger)supportedInterfaceOrientations
+{
+    // ポートレイトだけ許可
+    return UIInterfaceOrientationMaskPortrait;
+}
 /*
 #pragma mark - Navigation
 

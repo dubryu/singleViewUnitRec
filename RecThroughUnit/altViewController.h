@@ -10,6 +10,7 @@
 #import <AVFoundation/AVFoundation.h>
 #import "reverbValue.h" //3/25
 #import "delayValue.h"
+#import "altView.h"
 @class audioSetup;
 @class CaptureSessionController;
 
@@ -76,6 +77,8 @@
     AVAudioPlayer *Oplayerx;
     AVAudioPlayer *Oplayerxx;
     AVAudioPlayer *Oplayerxxx;
+    
+    altView *_hogeView;
 }
 
 //------------------------
@@ -87,9 +90,9 @@
 //- (IBAction)didchangeDecayTimeAtNyquist:(UISlider *)sender;
 //- (IBAction)didchangeRandomizeReflections:(UISlider *)sender;
 //- (IBAction)resets;
-
 //- (IBAction)descPort:(id)sender;
 //@property (readonly) NSString *portType;
+
 @property (nonatomic,readonly)reverbValue *reverbValue;
 @property (nonatomic,readonly)delayValue *delayValue;
 
